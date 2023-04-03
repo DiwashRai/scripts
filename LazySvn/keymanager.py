@@ -13,6 +13,7 @@ class KeyManager:
         self.methods["l"] = Bind("next_grid", [])
         self.methods["j"] = Bind("next_item", [])
         self.methods["k"] = Bind("prev_item", [])
+        self.methods["space"] = Bind("toggle_selected_for_commit", [])
 
 
     def get_method(self, key: str) -> Bind:

@@ -11,6 +11,7 @@ class Status:
         self.revision = revision
         self.type = type
         self.type_raw_name = type_raw_name
+        self.selected_for_commit = False
 
 
 class Commit:

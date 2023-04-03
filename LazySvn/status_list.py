@@ -28,7 +28,10 @@ class StatusList(Widget):
         for i, e in enumerate(self.model.status_list):
             style = "bold #f2f2f2"
             if e.type_raw_name == "modified":
-                style = "bold #E82424"
+                if e.selected_for_commit:
+                    style = "bold #98BB6C"
+                else:
+                    style = "bold #E82424"
             elif e.type_raw_name == "unversioned":
                 style = "bold #b3b3b3"
 
@@ -73,6 +76,14 @@ class StatusList(Widget):
             self.model.selected_status -= 1
         else:
             self.model.selected_status = len(self.model.status_list) - 1
+        self.refresh()
+
+
+    def toggle_selected_for_commit(self):
+        idx = self.model.selected_status
+        if not self.model.status_list[idx].type_raw_name == "modified":
+            return
+        self.model.status_list[idx].selected_for_commit = not self.model.status_list[idx].selected_for_commit
         self.refresh()
 
 
