@@ -38,7 +38,8 @@ class Model():
     def load_status(self, local: svn.local.LocalClient):
         status_list = []
         for e in local.status():
-            status_list.append(Status(e.name, e.revision, e.type, e.type_raw_name));
+            relative_path = e.name[len(local.path):].removeprefix("\\")
+            status_list.append(Status(relative_path, e.revision, e.type, e.type_raw_name));
         return status_list
 
 
@@ -50,7 +51,7 @@ class Model():
 
 
     def setup(self):
-        self.local = svn.local.LocalClient("C:/projects/svn-checkouts/textual-test")
+        self.local = svn.local.LocalClient("C:\\projects\\svn-checkouts\\textual-test")
         self.status_list = self.load_status(self.local)
         self.commit_list = self.load_commits(self.local)
 

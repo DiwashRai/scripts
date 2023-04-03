@@ -11,6 +11,8 @@ class KeyManager:
         self.methods: Dict[str, Bind] = {}
         self.methods["h"] = Bind("prev_grid", [])
         self.methods["l"] = Bind("next_grid", [])
+        self.methods["j"] = Bind("next_item", [])
+        self.methods["k"] = Bind("prev_item", [])
 
 
     def get_method(self, key: str) -> Bind:
