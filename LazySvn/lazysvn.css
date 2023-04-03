@@ -1,6 +1,7 @@
 Screen {
     layout: grid;
     grid-size: 2 2;
+    background: #1a1a22;
 }
 
 .box {

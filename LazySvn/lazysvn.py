@@ -1,7 +1,9 @@
 from textual.app import App, ComposeResult
 from textual.widgets import Static, OptionList
+from textual import events
 import svn.local
-
+from status_list import StatusList
+from commit_list import CommitList
 
 class Status:
     def __init__(self, name, revision, type, type_raw_name):
@@ -25,9 +27,12 @@ class Model():
     Model that holds the state of the application.
     """
     def __init__(self):
-        self.selected_file = None
-        self.selected_commit = None
-        self.selected_diff = None
+        self.selected_status = 0
+        self.selected_commit = 0
+
+        self.local = None
+        self.status_list = []
+        self.commit_list = []
 
 
     def load_status(self, local: svn.local.LocalClient):
@@ -66,24 +71,37 @@ class SVNTui(App):
 
     def __init__ (self):
         super().__init__()
-
-
-    def compose(self) -> ComposeResult:
-        yield OptionList(classes="box", id="files")
-        yield Static("diff-view", classes="box", id="diff-view")
-        yield OptionList(classes="box", id="commit-log")
+        self.status_grid = StatusList(model)
+        self.commit_grid = CommitList(model)
 
 
     def on_load(self):
         self.model = model
 
 
-    def on_mount(self, event):
-        for e in self.local.status():
-            self.query_one("#files").add_option(e.name)
+    def compose(self) -> ComposeResult:
+        yield self.status_grid
+        yield Static("diff-view", classes="box", id="diff-view")
+        yield self.commit_grid
 
-        for log in self.local.log_default():
-            self.query_one("#commit-log").add_option(log.msg)
+
+    def on_load(self):
+        self.model = model
+
+
+    def toggle_focus(self):
+        self.status_grid.toggle_focus()
+        self.commit_grid.toggle_focus()
+
+
+    async def on_key(self, event: events.Key) -> None:
+        if event.key == "escape":
+            await self.exit()
+        elif self.status_grid._is_focused:
+            await self.status_grid.handle_key(event)
+        elif self.commit_grid._is_focused:
+            await self.commit_grid.handle_key(event)
+
 
 if __name__ == "__main__":
     app = SVNTui()
