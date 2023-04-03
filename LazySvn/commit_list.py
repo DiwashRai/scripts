@@ -3,7 +3,7 @@ from textual import events
 from rich.text import Text, TextType
 from rich.console import RenderableType
 from textual.widgets import Static
-from rich.table import Table
+from rich.table import Table, Column
 from rich.panel import Panel
 from rich.box import SQUARE
 from keymanager import KeyManager
@@ -25,18 +25,51 @@ class CommitList(Widget):
 
 
     def render(self) -> RenderableType:
-        table = Table("cursor", "revision", "message", "author", show_header=False, box=None)
+        table = Table(
+            "cursor",
+            "revision",
+            "author",
+            "date",
+            "message",
+            show_header=False,
+            box=None
+            )
         for i, e in enumerate(self.model.commit_list):
-            if (i == self.model.selected_commit and self._is_focused):
-                table.add_row(">", str(e.revision), e.msg, e.author, style="bold #f2f2f2")
-            else:
-                table.add_row(" ", str(e.revision), e.msg, e.author, style="bold #666666")
+            cursor = " "
+            row_style = None
+            if i == self.model.selected_commit and self._is_focused:
+                cursor = ">"
+                row_style = "on #333333"
+            table.add_row(
+                cursor,
+                f"[bold #FF9E3B]{str(e.revision)}",
+                f"[bold #7E9CD8]{e.author}",
+                f"[bold #957FB8]{e.date.strftime('%d/%m/%Y %H:%M:%S')}",
+                e.msg,
+                style=row_style
+                )
         return Panel(
             table,
             box=SQUARE,
             expand=True,
             border_style="b #98BB6C" if self._is_focused else "d #e5e9f0",
         )
+
+
+    def next_item(self):
+        if self.model.selected_commit < len(self.model.commit_list) - 1:
+            self.model.selected_commit += 1
+        else:
+            self.model.selected_commit = 0
+        self.refresh()
+
+
+    def prev_item(self):
+        if self.model.selected_commit > 0:
+            self.model.selected_commit -= 1
+        else:
+            self.model.selected_commit = len(self.model.commit_list) - 1
+        self.refresh()
 
 
     def prev_grid(self):

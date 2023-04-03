@@ -26,10 +26,22 @@ class StatusList(Widget):
     def render(self) -> RenderableType:
         table = Table("cursor", "path", "type", show_header=False, box=None)
         for i, e in enumerate(self.model.status_list):
+            style = "bold #f2f2f2"
+            if e.type_raw_name == "modified":
+                style = "bold #E82424"
+            elif e.type_raw_name == "unversioned":
+                style = "bold #b3b3b3"
+
+            cursor = " "
             if i == self.model.selected_status and self._is_focused:
-                table.add_row(">", e.name, e.type_raw_name, style="bold #f2f2f2")
-            else:
-                table.add_row(" ", e.name, e.type_raw_name, style="bold #666666")
+                cursor = "[bold white]>"
+                style += " on #333333"
+            table.add_row(
+                cursor,
+                e.name,
+                e.type_raw_name,
+                style=style)
+
         return Panel(
             table,
             box=SQUARE,
@@ -46,6 +58,22 @@ class StatusList(Widget):
     def next_grid(self):
         self.app.commit_grid.toggle_focus()
         self.app.status_grid.toggle_focus()
+
+
+    def next_item(self):
+        if self.model.selected_status < len(self.model.status_list) - 1:
+            self.model.selected_status += 1
+        else:
+            self.model.selected_status = 0
+        self.refresh()
+
+
+    def prev_item(self):
+        if self.model.selected_status > 0:
+            self.model.selected_status -= 1
+        else:
+            self.model.selected_status = len(self.model.status_list) - 1
+        self.refresh()
 
 
     async def handle_key(self, event: events.Key) -> None:
