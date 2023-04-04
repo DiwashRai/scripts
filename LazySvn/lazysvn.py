@@ -46,7 +46,7 @@ class Model():
 
     def load_commits(self, local: svn.local.LocalClient):
         commit_list = []
-        for log in local.log_default():
+        for log in local.log_default(limit=100):
             commit_list.append(Commit(log.date, log.msg, log.revision, log.author, log.changelist))
         return commit_list
 
