@@ -3,19 +3,23 @@ from textual import events
 from rich.text import Text, TextType
 from rich.console import RenderableType
 from textual.widgets import Static
+from textual.scroll_view import ScrollView
 from rich.table import Table
 from rich.panel import Panel
 from rich.box import SQUARE
 from keymanager import KeyManager
 
 
-class StatusList(Widget):
+class StatusList(ScrollView):
     key_manager = KeyManager()
 
     def __init__(self, model):
-        super().__init__()
+        super().__init__(id="status-list")
         self.model = model
         self._is_focused = True
+        self.y = 0
+        self.lower = 0
+        self.upper = 0
 
 
     def toggle_focus(self):
