@@ -17,6 +17,8 @@ class CommitList(Widget):
         super().__init__()
         self.model = model
         self._is_focused = False
+        self.lower_bound = 0
+        self.upper_bound = 0
 
 
     def toggle_focus(self):
@@ -25,16 +27,19 @@ class CommitList(Widget):
 
 
     def render(self) -> RenderableType:
+        self.upper_bound = self.lower_bound + self._size.height - 2
         table = Table(
             "cursor",
             "revision",
             "author",
             "date",
             "message",
+            padding=False,
             show_header=False,
-            box=None
+            box=None,
+            expand=True
             )
-        for i, e in enumerate(self.model.commit_list):
+        for i, e in enumerate(self.model.commit_list[self.lower_bound:self.upper_bound+1], self.lower_bound):
             cursor = " "
             row_style = None
             if i == self.model.selected_commit and self._is_focused:
@@ -48,6 +53,7 @@ class CommitList(Widget):
                 e.msg,
                 style=row_style
                 )
+
         return Panel(
             table,
             box=SQUARE,
@@ -59,16 +65,16 @@ class CommitList(Widget):
     def next_item(self):
         if self.model.selected_commit < len(self.model.commit_list) - 1:
             self.model.selected_commit += 1
-        else:
-            self.model.selected_commit = 0
+        if self.model.selected_commit > self.upper_bound:
+            self.lower_bound += 1
         self.refresh()
 
 
     def prev_item(self):
         if self.model.selected_commit > 0:
             self.model.selected_commit -= 1
-        else:
-            self.model.selected_commit = len(self.model.commit_list) - 1
+        if self.model.selected_commit < self.lower_bound:
+            self.lower_bound -= 1
         self.refresh()
 
 

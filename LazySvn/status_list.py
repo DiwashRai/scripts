@@ -1,26 +1,21 @@
 from textual.widget import Widget
 from textual import events
-from rich.text import Text, TextType
 from rich.console import RenderableType
-from textual.widgets import Static
-from textual.scroll_view import ScrollView
 from rich.table import Table
 from rich.panel import Panel
 from rich.box import SQUARE
 from keymanager import KeyManager
 
 
-class StatusList(ScrollView):
+class StatusList(Widget):
     key_manager = KeyManager()
 
     def __init__(self, model):
         super().__init__(id="status-list")
         self.model = model
         self._is_focused = True
-        self.y = 0
-        self.lower = 0
-        self.upper = 0
-
+        self.lower_bound = 0
+        self.upper_bound = 0
 
     def toggle_focus(self):
         self._is_focused = not self._is_focused
@@ -28,8 +23,17 @@ class StatusList(ScrollView):
 
 
     def render(self) -> RenderableType:
-        table = Table("cursor", "path", "type", show_header=False, box=None)
-        for i, e in enumerate(self.model.status_list):
+        self.upper_bound = self.lower_bound + self._size.height - 2
+        table = Table(
+            "cursor",
+            "path",
+            "type",
+            padding=False,
+            show_header=False,
+            box=None,
+            expand=True
+            )
+        for i, e in enumerate(self.model.status_list[self.lower_bound:self.upper_bound+1], self.lower_bound):
             style = "bold #f2f2f2"
             if e.type_raw_name == "modified":
                 if e.selected_for_commit:
@@ -47,7 +51,8 @@ class StatusList(ScrollView):
                 cursor,
                 e.name,
                 e.type_raw_name,
-                style=style)
+                style=style
+                )
 
         return Panel(
             table,
@@ -70,16 +75,16 @@ class StatusList(ScrollView):
     def next_item(self):
         if self.model.selected_status < len(self.model.status_list) - 1:
             self.model.selected_status += 1
-        else:
-            self.model.selected_status = 0
+        if self.model.selected_status >= self.upper_bound:
+            self.lower_bound += 1
         self.refresh()
 
 
     def prev_item(self):
         if self.model.selected_status > 0:
             self.model.selected_status -= 1
-        else:
-            self.model.selected_status = len(self.model.status_list) - 1
+        if self.model.selected_status < self.lower_bound:
+            self.lower_bound -= 1
         self.refresh()
 
 

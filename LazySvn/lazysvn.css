@@ -12,9 +12,3 @@ Screen {
 #diff-view {
     row-span: 2;
 }
-
-#status-list {
-    background: blue;
-    height: 100%;
-    width: 100%;
-}
