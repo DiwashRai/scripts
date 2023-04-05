@@ -10,9 +10,10 @@ from keymanager import KeyManager
 class StatusList(Widget):
     key_manager = KeyManager()
 
-    def __init__(self, model):
+    def __init__(self, model, output_box):
         super().__init__(id="status-list")
         self.model = model
+        self.output_box = output_box
         self._is_focused = True
         self.lower_bound = 0
         self.upper_bound = 0
@@ -77,7 +78,9 @@ class StatusList(Widget):
             self.model.selected_status += 1
         if self.model.selected_status >= self.upper_bound:
             self.lower_bound += 1
+        self.model.output = self.model.status_list[self.model.selected_status].diff
         self.refresh()
+        self.output_box.refresh()
 
 
     def prev_item(self):
@@ -85,7 +88,9 @@ class StatusList(Widget):
             self.model.selected_status -= 1
         if self.model.selected_status < self.lower_bound:
             self.lower_bound -= 1
+        self.model.output = self.model.status_list[self.model.selected_status].diff
         self.refresh()
+        self.output_box.refresh()
 
 
     def toggle_selected_for_commit(self):

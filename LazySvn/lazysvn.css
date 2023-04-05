@@ -9,6 +9,6 @@ Screen {
     border: solid green;
 }
 
-#diff-view {
+#output-box {
     row-span: 2;
 }
