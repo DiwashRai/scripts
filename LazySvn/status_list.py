@@ -60,6 +60,8 @@ class StatusList(Widget):
             box=SQUARE,
             expand=True,
             border_style="b #98BB6C" if self._is_focused else "d #e5e9f0",
+            title="Status",
+            title_align="left",
         )
 
 
@@ -74,6 +76,8 @@ class StatusList(Widget):
 
 
     def next_item(self):
+        if (len(self.model.status_list) == 0):
+            return
         if self.model.selected_status < len(self.model.status_list) - 1:
             self.model.selected_status += 1
         if self.model.selected_status >= self.upper_bound:
@@ -84,6 +88,8 @@ class StatusList(Widget):
 
 
     def prev_item(self):
+        if (len(self.model.status_list) == 0):
+            return
         if self.model.selected_status > 0:
             self.model.selected_status -= 1
         if self.model.selected_status < self.lower_bound:

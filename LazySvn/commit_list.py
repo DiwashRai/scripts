@@ -1,8 +1,6 @@
 from textual.widget import Widget
 from textual import events
-from rich.text import Text, TextType
 from rich.console import RenderableType
-from textual.widgets import Static
 from rich.table import Table, Column
 from rich.panel import Panel
 from rich.box import SQUARE
@@ -13,9 +11,10 @@ class CommitList(Widget):
     key_manager = KeyManager()
 
 
-    def __init__(self, model):
-        super().__init__()
+    def __init__(self, model, output_box):
+        super().__init__(id="commit-box")
         self.model = model
+        self.output_box = output_box
         self._is_focused = False
         self.lower_bound = 0
         self.upper_bound = 0
@@ -29,17 +28,17 @@ class CommitList(Widget):
     def render(self) -> RenderableType:
         self.upper_bound = self.lower_bound + self._size.height - 2
         table = Table(
-            "cursor",
-            "revision",
-            "author",
-            "date",
-            "message",
-            padding=False,
+            Column(header="cursor", min_width=1, no_wrap=True),
+            Column(header="revision", min_width=10, no_wrap=True, justify="right"),
+            Column(header="author", min_width=9, no_wrap=True),
+            Column(header="date", min_width=14, no_wrap=True),
+            Column(header="message", width=80, no_wrap=True),
             show_header=False,
             box=None,
-            expand=True
+            min_width=150,
+            padding=[0, 1, 0, 0],
             )
-        for i, e in enumerate(self.model.commit_list[self.lower_bound:self.upper_bound+1], self.lower_bound):
+        for i, e in enumerate(self.model.commit_list[self.lower_bound:self.upper_bound], self.lower_bound):
             cursor = " "
             row_style = None
             if i == self.model.selected_commit and self._is_focused:
@@ -48,9 +47,9 @@ class CommitList(Widget):
             table.add_row(
                 cursor,
                 f"[bold #FF9E3B]{str(e.revision)}",
-                f"[bold #7E9CD8]{e.author}",
-                f"[bold #957FB8]{e.date.strftime('%d/%m/%Y %H:%M:%S')}",
-                e.msg,
+                f"[bold #7E9CD8]{e.author}" if self._size.width > 12 else None,
+                f"[bold #957FB8]{e.date.strftime('%d/%m/%y %H:%M')}" if self._size.width > 30 else None,
+                e.msg if self._size.width > 41 else None,
                 style=row_style
                 )
 
@@ -59,23 +58,33 @@ class CommitList(Widget):
             box=SQUARE,
             expand=True,
             border_style="b #98BB6C" if self._is_focused else "d #e5e9f0",
+            title="Commits",
+            title_align="left",
         )
 
 
     def next_item(self):
+        if (len(self.model.commit_list) == 0):
+            return
         if self.model.selected_commit < len(self.model.commit_list) - 1:
             self.model.selected_commit += 1
-        if self.model.selected_commit > self.upper_bound:
+        if self.model.selected_commit >= self.upper_bound:
             self.lower_bound += 1
+        self.model.output = self.model.commit_list[self.model.selected_commit].rich_output
         self.refresh()
+        self.output_box.refresh()
 
 
     def prev_item(self):
+        if (len(self.model.commit_list) == 0):
+            return
         if self.model.selected_commit > 0:
             self.model.selected_commit -= 1
         if self.model.selected_commit < self.lower_bound:
             self.lower_bound -= 1
+        self.model.output = self.model.commit_list[self.model.selected_commit].rich_output
         self.refresh()
+        self.output_box.refresh()
 
 
     def prev_grid(self):

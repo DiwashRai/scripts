@@ -12,3 +12,7 @@ Screen {
 #output-box {
     row-span: 2;
 }
+
+#commit-box {
+    border-title-align: left;
+}
