@@ -48,6 +48,8 @@ class Model():
         self.local = svn.local.LocalClient("C:\\projects\\svn-checkouts\\textual-test")
         self.status_list = self.load_status(self.local)
         self.commit_list = self.load_commits(self.local)
+        if (len(self.status_list) > 0):
+            self.output = self.status_list[0].diff
 
 
     def commit(self):

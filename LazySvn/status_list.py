@@ -20,6 +20,9 @@ class StatusList(Widget):
 
     def toggle_focus(self):
         self._is_focused = not self._is_focused
+        if (self._is_focused):
+            self.model.output = self.model.status_list[self.model.selected_status].diff
+            self.output_box.refresh()
         self.refresh()
 
 
