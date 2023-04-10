@@ -4,6 +4,11 @@ Screen {
     background: #1a1a22;
 }
 
+ModalScreen {
+    align: center middle;
+    background: #1a1a22 50%;
+}
+
 .box {
     height: 100%;
     border: solid green;

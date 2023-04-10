@@ -1,5 +1,7 @@
 from textual.app import App, ComposeResult
 from textual import events
+from textual.screen import ModalScreen
+from textual.widgets import Input
 import svn.local
 from status_list import StatusList
 from commit_list import CommitList
@@ -46,19 +48,30 @@ class Model():
 
     def setup(self):
         self.local = svn.local.LocalClient("C:\\projects\\svn-checkouts\\textual-test")
+        self.selected_status = 0
+        self.selected_commit = 0
         self.status_list = self.load_status(self.local)
         self.commit_list = self.load_commits(self.local)
-        if (len(self.status_list) > 0):
+        if (len(self.output) == 0 and len(self.status_list) > 0):
             self.output = self.status_list[0].diff
 
 
-    def commit(self):
+    def commit(self, commit_msg):
+        if len(commit_msg) == 0:
+            return "Commit message cannot be empty"
         to_commit = []
         for status in self.status_list:
             if status.selected_for_commit:
                 to_commit.append(status.name)
 
-        self.local.commit(message="test commit", rel_filepaths=to_commit)
+        if len(to_commit) == 0:
+            return "No files selected for commit"
+
+        commit_lines = self.my_commit(message=commit_msg, rel_filepaths=to_commit)
+        out_str = ""
+        for line in commit_lines:
+            out_str += line + "\n"
+        return out_str
 
 
     def svn_update(self):
@@ -158,8 +171,44 @@ class Model():
         commit.diff_loaded = True
 
 
+    def my_commit(self, message, rel_filepaths=[]):
+        args = ['-m', message] + rel_filepaths
+
+        return self.local.run_command(
+            'commit',
+            args,
+            wd=self.local.path)
+
+
 model = Model()
 model.setup()
+
+class CommitScreen(ModalScreen):
+    def __init__(self, model: Model, output_box: OuputBox):
+        super().__init__()
+        self.model = model
+        self.output_box = output_box
+        self.input_msg = Input()
+        self.input_msg.focus()
+
+    def compose(self) -> ComposeResult:
+        yield self.input_msg
+
+
+    def on_key(self, event: events.Key) -> None:
+        event.stop()
+        if event.key == 'escape':
+            self.app.pop_screen()
+        if event.key == 'backspace':
+            self.input_msg.action_delete_left()
+        if event.key == 'enter':
+            commit_res = self.model.commit(self.input_msg.value)
+            if (commit_res == "" or commit_res == None):
+                commit_res = "Commit successful"
+            self.model.output = Text(commit_res)
+            self.app.pop_screen()
+            self.model.svn_update()
+            self.app.refresh_widgets()
 
 
 class SVNTui(App):
@@ -184,10 +233,6 @@ class SVNTui(App):
         self.commit_grid.toggle_focus()
 
 
-    def commit(self):
-        self.model.commit()
-
-
     def refresh_widgets(self):
         self.status_grid.refresh()
         self.commit_grid.refresh()
@@ -205,9 +250,7 @@ class SVNTui(App):
             self.model.setup()
             self.refresh_widgets()
         elif event.key == "c":
-            self.commit()
-            self.model.setup()
-            self.refresh_widgets()
+            self.push_screen(CommitScreen(self.model, self.output_box))
         elif event.key == "d" and self.commit_grid._is_focused:
             self.model.load_diff_for_commit()
             self.refresh_widgets()

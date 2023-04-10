@@ -4,6 +4,7 @@ from rich.console import RenderableType
 from rich.table import Table
 from rich.panel import Panel
 from rich.box import SQUARE
+from rich.text import Text
 from keymanager import KeyManager
 
 
@@ -21,7 +22,10 @@ class StatusList(Widget):
     def toggle_focus(self):
         self._is_focused = not self._is_focused
         if (self._is_focused):
-            self.model.output = self.model.status_list[self.model.selected_status].diff
+            if (len(self.model.status_list) > 0):
+                self.model.output = self.model.status_list[self.model.selected_status].diff
+            else:
+                self.model.output = Text("")
             self.output_box.refresh()
         self.refresh()
 

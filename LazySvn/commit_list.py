@@ -22,7 +22,7 @@ class CommitList(Widget):
 
     def toggle_focus(self):
         self._is_focused = not self._is_focused
-        if (self._is_focused):
+        if (self._is_focused and len(self.model.commit_list) > 0):
             self.model.output = self.model.commit_list[self.model.selected_commit].rich_output
             self.output_box.refresh()
         self.refresh()
